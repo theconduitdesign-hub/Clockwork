@@ -1,0 +1,119 @@
+import React from 'react';
+import { Header, Icon, IconButton, Say } from '../components/ui.jsx';
+import { PaceTag } from './Targets.jsx';
+import { dailyBudget, logged, pace } from '../budget.js';
+import { DAY_LETTERS, DAY_MS, DAY_NAMES, addDays, dayIndex, fmt, weekKey, weekStart } from '../time.js';
+
+export default function TargetDetail({ state, dispatch, now, back, sheet, id }) {
+  const t = state.targets.find((x) => x.id === id);
+  if (!t) {
+    return (
+      <>
+        <Header left={<IconButton label="Back" onClick={back}><Icon.back /></IconButton>} />
+        <main className="main"><Say>That target no longer exists.</Say></main>
+      </>
+    );
+  }
+  const ws = weekStart(now);
+  const wk = weekKey(now);
+  const p = pace(state, t, now);
+  const left = p.budget - p.actual;
+  const today = dayIndex(now);
+
+  let line;
+  if (p.done) line = left > 0 ? `Done, with ${fmt(left)} to spare. That goes to savings when the week settles.` : 'Done. Well budgeted.';
+  else if (p.actual > p.budget) line = `${fmt(p.actual - p.budget)} over budget. It'll be borrowed from savings when the week settles.`;
+  else if (p.projected == null) line = 'Early days. Log some time and I will forecast your pace.';
+  else if (p.projected >= p.budget - 1) line = `At this pace you'll reach ${fmt(p.budget)} by Sunday. Right on time.`;
+  else line = `At this pace you'll land around ${fmt(p.projected)}. ${fmt(p.budget - p.projected)} to catch up.`;
+
+  const days = DAY_LETTERS.map((l, i) => {
+    const ds = addDays(ws, i).getTime();
+    return { l, plan: dailyBudget(t, state.fixedCosts, i), done: logged(state, t.id, ds, ds + DAY_MS, now) };
+  });
+  const maxH = Math.max(...days.map((d) => Math.max(d.plan, d.done)), 1);
+  const entries = state.entries
+    .filter((e) => e.targetId === t.id && e.end > ws.getTime())
+    .sort((a, b) => b.start - a.start)
+    .slice(0, 8);
+
+  return (
+    <>
+      <Header
+        left={<IconButton label="Back" onClick={back}><Icon.back /></IconButton>}
+        right={<button type="button" className="btn-text tight" onClick={() => sheet({ name: 'targetForm', id: t.id })}>Edit</button>}
+      />
+      <main className="main">
+        <div>
+          <div className="split">
+            <h1 className="d h1-lg">{t.name}</h1>
+            <PaceTag p={p} />
+          </div>
+          {t.doneWhen && <div className="muted">Done when: {t.doneWhen}</div>}
+        </div>
+        <div className="stats">
+          <div><div className="lbl">Budget</div><div className="d">{fmt(p.budget)}</div></div>
+          <div><div className="lbl">Spent</div><div className="d">{fmt(p.actual)}</div></div>
+          <div><div className="lbl">{left >= 0 ? 'Left' : 'Over'}</div><div className="d">{fmt(Math.abs(left))}</div></div>
+        </div>
+        {t.client && Number(t.rate) > 0 && (
+          <div className="card split">
+            <span className="strong">Billable this week</span>
+            <span className="d big-num">{Math.round((p.actual / 60) * Number(t.rate)).toLocaleString()}</span>
+          </div>
+        )}
+        <Say>{line}</Say>
+        <div className="card">
+          <div className="lbl">Planned vs logged</div>
+          <div className="days">
+            {days.map((d, i) => (
+              <div className="day" key={i} title={`${DAY_NAMES[i]}: ${fmt(d.done)} of ${fmt(d.plan)}`}>
+                <div className="pair">
+                  <div className="plan" style={{ height: Math.max(4, (d.plan / maxH) * 100) }} />
+                  <div className="done" style={{ height: Math.max(d.done > 0 ? 4 : 0, (d.done / maxH) * 100), background: t.color }} />
+                </div>
+                <span className={i === today ? 'dl on' : 'dl'}>{d.l}</span>
+              </div>
+            ))}
+          </div>
+          <div className="key">
+            <span><i className="k-plan" />Planned</span>
+            <span><i className="k-done" style={{ background: t.color }} />Logged</span>
+          </div>
+        </div>
+        {entries.length > 0 && (
+          <div className="card list">
+            <div className="lbl" style={{ paddingTop: 12 }}>This week's entries</div>
+            {entries.map((e) => (
+              <div className="li" key={e.id}>
+                <span>
+                  {DAY_NAMES[dayIndex(e.start)].slice(0, 3)} {new Date(e.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+                <span className="li-right">
+                  <span className="num">{fmt((e.end - e.start) / 60000)}</span>
+                  <IconButton label="Delete entry" className="ghost" onClick={() => dispatch({ type: 'deleteEntry', id: e.id })}>
+                    <Icon.trash />
+                  </IconButton>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="row-2">
+          <button type="button" className="btn2" onClick={() => sheet({ name: 'log', targetId: t.id })}>+ Log time</button>
+          {state.timer?.targetId === t.id ? (
+            <button type="button" className="btn2" onClick={() => dispatch({ type: 'stopTimer' })}>Stop timer</button>
+          ) : (
+            <button type="button" className="btn2" onClick={() => dispatch({ type: 'startTimer', targetId: t.id })}>Start timer</button>
+          )}
+        </div>
+        <div>
+          <button type="button" className={p.done ? 'btn2' : 'btn'} onClick={() => dispatch({ type: 'toggleDone', id: t.id, wk })}>
+            {p.done ? 'Not done after all' : 'Mark as done this week'}
+          </button>
+          <p className="muted small center">Finishing under budget banks the difference as saved hours.</p>
+        </div>
+      </main>
+    </>
+  );
+}
