@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header, Icon, IconButton, Logo, Ring } from '../components/ui.jsx';
 import { freeForDay, logged, weekFree, weekRange } from '../budget.js';
+import { tcolor } from '../store.js';
 import { DAY_LETTERS, DAY_MS, addDays, dayIndex, fmt, weekRangeLabel, weekStart } from '../time.js';
 
 export default function Week({ state, now, open }) {
@@ -11,7 +12,7 @@ export default function Week({ state, now, open }) {
   const buffer = Math.max(0, free - allocated);
   const total = Math.max(free, allocated);
   const segments = [
-    ...state.targets.map((t) => ({ value: t.weeklyHours * 60, color: t.color })),
+    ...state.targets.map((t) => ({ value: t.weeklyHours * 60, color: tcolor(t) })),
     { value: buffer, color: 'rgba(20,32,31,0.06)' },
   ];
   const today = dayIndex(now);
@@ -35,7 +36,7 @@ export default function Week({ state, now, open }) {
           <div className="legend">
             {state.targets.map((t) => (
               <button type="button" key={t.id} className="lg" onClick={() => open({ name: 'target', id: t.id })}>
-                <span className="dot" style={{ background: t.color }} />
+                <span className="dot" style={{ background: tcolor(t) }} />
                 <b>{t.name}</b>
                 <span>{Math.round(logged(state, t.id, from, to, now) / 6) / 10} / {t.weeklyHours}</span>
               </button>
