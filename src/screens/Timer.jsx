@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header, Icon, IconButton, Ring, Say } from '../components/ui.jsx';
 import { dailyBudget, dayRange, logged } from '../budget.js';
+import { tcolor } from '../store.js';
 import { dayIndex, fmt, fmtClock } from '../time.js';
 
 export function TimerBanner({ state, dispatch, now, open }) {
@@ -10,7 +11,7 @@ export function TimerBanner({ state, dispatch, now, open }) {
   return (
     <div className="banner">
       <button type="button" className="banner-body" onClick={() => open({ name: 'timer' })}>
-        <span className="dot" style={{ background: t.color }} />
+        <span className="dot" style={{ background: tcolor(t) }} />
         <span className="strong">{t.name}</span>
         <span className="d clock-sm">{fmtClock(now - state.timer.start)}</span>
       </button>
@@ -50,11 +51,11 @@ export default function TimerView({ state, dispatch, now, back }) {
       {header}
       <main className="main">
         <div className="pill-name" style={{ alignSelf: 'center' }}>
-          <span className="dot" style={{ background: t.color }} />
+          <span className="dot" style={{ background: tcolor(t) }} />
           {t.name}
         </div>
         <div className="center-box">
-          <Ring size={280} stroke={7} total={budget || 1} segments={[{ value: spent, color: t.color }]} label={`${fmt(spent)} of ${fmt(budget)} used today`}>
+          <Ring size={280} stroke={7} total={budget || 1} segments={[{ value: spent, color: tcolor(t) }]} label={`${fmt(spent)} of ${fmt(budget)} used today`}>
             <div className="d clock-big">{fmtClock(now - timer.start)}</div>
             <div className="muted">{fmt(spent)} of {fmt(budget)} today</div>
           </Ring>

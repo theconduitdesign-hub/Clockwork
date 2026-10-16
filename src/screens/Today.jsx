@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bar, DoneBadge, Header, Icon, IconButton, Logo, Ring, Say } from '../components/ui.jsx';
 import { dailyBudget, dayRange, logged } from '../budget.js';
+import { tcolor } from '../store.js';
 import { DAY_NAMES, dateLabel, dayIndex, fmt, greeting, weekKey } from '../time.js';
 
 function hm(min) {
@@ -53,7 +54,7 @@ export default function Today({ state, dispatch, now, open, sheet }) {
       <main className="main">
         <Say>{line}</Say>
         <div className="card ring-card">
-          <Ring size={120} total={budget || 1} segments={[{ value: spent, color: '#0E6B6B' }]} label={`${fmt(spent)} spent of ${fmt(budget)} today`}>
+          <Ring size={120} total={budget || 1} segments={[{ value: spent, color: 'var(--teal)' }]} label={`${fmt(spent)} spent of ${fmt(budget)} today`}>
             <div className="d mid-num">{hm(left)}</div>
             <div className="muted tiny">left today</div>
           </Ring>
@@ -70,13 +71,13 @@ export default function Today({ state, dispatch, now, open, sheet }) {
               const running = state.timer?.targetId === t.id;
               return (
                 <div className="alloc" key={t.id}>
-                  <span className="dot" style={{ background: t.color }} />
+                  <span className="dot" style={{ background: tcolor(t) }} />
                   <button type="button" className="alloc-body" onClick={() => open({ name: 'target', id: t.id })}>
                     <span className="split strong">
                       <span>{t.name}</span>
                       <span className="amt">{fmt(s)} / {fmt(b)}</span>
                     </span>
-                    <Bar value={s} max={b} color={t.color} />
+                    <Bar value={s} max={b} color={tcolor(t)} />
                   </button>
                   {done ? (
                     <DoneBadge />

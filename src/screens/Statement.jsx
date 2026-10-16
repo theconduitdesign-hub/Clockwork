@@ -52,7 +52,7 @@ export default function Statement({ state, dispatch, now, back }) {
       <main className="main">
         <div className="receipt">
           {stamp && <div className={net >= 0 ? 'stamp' : 'stamp ink'}>{settled ? 'SETTLED' : stamp}</div>}
-          <div className="brand-row"><Logo size={24} /><span className="strong small">Clockwork</span></div>
+          <div className="brand-row"><Logo size={24} /><span className="strong small">Pocketwatch</span></div>
           <h1 className="d h1">Statement</h1>
           <div className="muted">{weekRangeLabel(ws)}</div>
           <div className="rtable">

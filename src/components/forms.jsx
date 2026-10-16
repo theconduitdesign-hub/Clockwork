@@ -44,7 +44,7 @@ export function FixedCostsEditor({ list, onChange }) {
             {Math.round(fixed / 60)} h <span className="muted small">of 168 h</span>
           </span>
         </div>
-        <Bar value={fixed} max={10080} color="#14201F" />
+        <Bar value={fixed} max={10080} color="var(--ink)" />
       </div>
     </>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { Header, Icon, IconButton, Say } from '../components/ui.jsx';
 import { PaceTag } from './Targets.jsx';
 import { dailyBudget, logged, pace } from '../budget.js';
+import { tcolor } from '../store.js';
 import { DAY_LETTERS, DAY_MS, DAY_NAMES, addDays, dayIndex, fmt, weekKey, weekStart } from '../time.js';
 
 export default function TargetDetail({ state, dispatch, now, back, sheet, id }) {
@@ -70,7 +71,7 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id }) 
               <div className="day" key={i} title={`${DAY_NAMES[i]}: ${fmt(d.done)} of ${fmt(d.plan)}`}>
                 <div className="pair">
                   <div className="plan" style={{ height: Math.max(4, (d.plan / maxH) * 100) }} />
-                  <div className="done" style={{ height: Math.max(d.done > 0 ? 4 : 0, (d.done / maxH) * 100), background: t.color }} />
+                  <div className="done" style={{ height: Math.max(d.done > 0 ? 4 : 0, (d.done / maxH) * 100), background: tcolor(t) }} />
                 </div>
                 <span className={i === today ? 'dl on' : 'dl'}>{d.l}</span>
               </div>
@@ -78,7 +79,7 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id }) 
           </div>
           <div className="key">
             <span><i className="k-plan" />Planned</span>
-            <span><i className="k-done" style={{ background: t.color }} />Logged</span>
+            <span><i className="k-done" style={{ background: tcolor(t) }} />Logged</span>
           </div>
         </div>
         {entries.length > 0 && (

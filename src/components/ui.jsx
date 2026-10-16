@@ -1,4 +1,4 @@
-// Shared building blocks: the logo, Clockwork's speech bubble, rings, icons, header, tab bar and sheets.
+// Shared building blocks: the logo, Pocketwatch's speech bubble, rings, icons, header, tab bar and sheets.
 import React from 'react';
 
 const MOUSTACHE = 'M0 -6 C 12 -16, 30 -12, 40 0 C 48 9, 60 8, 64 -4 C 66 14, 50 22, 34 16 C 22 12, 12 6, 0 6 Z';
@@ -14,18 +14,18 @@ export function Logo({ size = 36, label }) {
       aria-hidden={label ? undefined : true}
       style={{ flexShrink: 0 }}
     >
-      <rect width="300" height="300" rx="70" fill="#0E6B6B" />
+      <rect width="300" height="300" rx="70" style={{ fill: 'var(--teal)' }} />
       <g transform="translate(150 146) scale(1.85)">
         <path d={MOUSTACHE} fill="#fff" />
         <path d={MOUSTACHE} fill="#fff" transform="scale(-0.8 0.8)" />
-        <circle r="5.5" fill="#D4A63A" />
+        <circle r="5.5" style={{ fill: 'var(--gold)' }} />
         <path d="M-18 26 Q0 42 18 26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" />
       </g>
     </svg>
   );
 }
 
-// Clockwork speaking.
+// Pocketwatch speaking.
 export function Say({ children }) {
   return (
     <div className="say" role="status">
@@ -54,7 +54,7 @@ export function Ring({ size = 120, stroke = 12, segments, total, label, children
                   cy="60"
                   r="50"
                   fill="none"
-                  stroke={s.color}
+                  style={{ stroke: s.color }}
                   strokeWidth={stroke}
                   pathLength={safeTotal}
                   strokeDasharray={`${len} ${safeTotal}`}
@@ -72,7 +72,7 @@ export function Ring({ size = 120, stroke = 12, segments, total, label, children
   );
 }
 
-export function Bar({ value, max, color = '#0E6B6B', thick }) {
+export function Bar({ value, max, color = 'var(--teal)', thick }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
     <div className={thick ? 'bar thick' : 'bar'}>
@@ -101,8 +101,8 @@ export function DoneBadge() {
   return (
     <span className="done-badge" role="img" aria-label="Done">
       <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="11" fill="#D4A63A" />
-        <path d="M7 12.5l3.2 3L17 8.5" fill="none" stroke="#14201F" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="12" r="11" style={{ fill: 'var(--gold)' }} />
+        <path d="M7 12.5l3.2 3L17 8.5" fill="none" style={{ stroke: 'var(--ink)' }} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
   );

@@ -17,11 +17,11 @@ export default function Onboarding({ state, dispatch }) {
     return (
       <div className="app">
         <main className="welcome">
-          <Logo size={132} label="Clockwork, the moustached clock" />
+          <Logo size={132} label="Pocketwatch, the moustached clock" />
           <h1 className="d">
             Good day.
             <br />
-            I'm Clockwork.
+            I'm Pocketwatch.
           </h1>
           <p>Your time accountant. Let's budget your hours so more of them go to what you love.</p>
           <Dots step={0} />
@@ -58,7 +58,7 @@ export default function Onboarding({ state, dispatch }) {
         <main className="main">
           <h1 className="d h1 center">Your free pool</h1>
           <div className="center-box">
-            <Ring size={240} stroke={12} total={10080} segments={[{ value: free, color: '#0E6B6B' }]} label={`${fmt(free)} free this week`}>
+            <Ring size={240} stroke={12} total={10080} segments={[{ value: free, color: 'var(--teal)' }]} label={`${fmt(free)} free this week`}>
               <div className="d hero-num teal">{Math.round(free / 60)} h</div>
               <div className="muted">free this week</div>
             </Ring>

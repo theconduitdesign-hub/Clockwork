@@ -2,6 +2,7 @@ import React from 'react';
 import { Bar, Header, Say } from '../components/ui.jsx';
 import { logged, pace, weekFree, weekRange } from '../budget.js';
 import { fmt } from '../time.js';
+import { tcolor } from '../store.js';
 
 export function PaceTag({ p }) {
   return <span className={`pace ${p.tone}`}>{p.label}</span>;
@@ -29,7 +30,7 @@ export default function Targets({ state, now, open, sheet }) {
                 {t.protected && <span className="badge">Protected</span>}
               </span>
               {t.doneWhen && <span className="muted small block">Done when: {t.doneWhen}</span>}
-              <Bar value={actual} max={t.weeklyHours * 60} color={t.color} />
+              <Bar value={actual} max={t.weeklyHours * 60} color={tcolor(t)} />
               <span className="split small">
                 <span className="num">{fmt(actual)} of {fmt(t.weeklyHours * 60)}</span>
                 <PaceTag p={p} />

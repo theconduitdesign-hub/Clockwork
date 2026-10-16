@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNow, useStore } from './store.js';
+import { applyTheme } from './themes.js';
 import { Sheet, TabBar } from './components/ui.jsx';
 import { GoalForm, LogTimeForm, TargetForm } from './components/forms.jsx';
 import Onboarding from './screens/Onboarding.jsx';
@@ -19,6 +20,10 @@ export default function App() {
   const [tab, setTab] = useState('today');
   const [view, setView] = useState(null);
   const [sheet, setSheet] = useState(null);
+
+  useEffect(() => {
+    applyTheme(state.theme);
+  }, [state.theme]);
 
   if (!state.onboarded) return <Onboarding state={state} dispatch={dispatch} />;
 

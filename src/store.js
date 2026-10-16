@@ -1,9 +1,16 @@
 // App state, kept in this browser's localStorage. Durations are minutes; times are epoch ms.
+// The storage key keeps its original name so existing data carries over.
 import { useEffect, useReducer, useState } from 'react';
 
 const KEY = 'clockwork.v1';
 
 export const COLORS = ['#0E6B6B', '#14201F', '#4E9C97', '#6E8C8A', '#2F5D7C', '#8A6E4B', '#5B4B7A'];
+
+// A target's colour follows the theme: stored palette colours map to the theme's --c0 … --c6.
+export function tcolor(t) {
+  const i = COLORS.indexOf(t.color);
+  return i >= 0 ? `var(--c${i})` : t.color;
+}
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -11,6 +18,7 @@ export function initialState() {
   return {
     version: 1,
     onboarded: false,
+    theme: 'teal',
     fixedCosts: [
       { id: uid(), name: 'Sleep', hours: 8, days: 'everyday' },
       { id: uid(), name: 'Work', hours: 8, days: 'weekdays' },
@@ -50,6 +58,8 @@ function reducer(s, a) {
   switch (a.type) {
     case 'setFixed':
       return { ...s, fixedCosts: a.list };
+    case 'setTheme':
+      return { ...s, theme: a.theme };
     case 'finishOnboarding':
       return { ...s, onboarded: true };
     case 'addTarget':

@@ -1,4 +1,4 @@
-/* Clockwork: Open Day Teal + Success Gold. Fraunces for display, Manrope for the interface. */
+/* Pocketwatch: themeable (default Teal + Gold, see themes.js). Fraunces for display, Manrope for the interface. */
 :root {
   --teal: #0E6B6B;
   --teal-dark: #0B5757;
@@ -9,13 +9,19 @@
   --line: rgba(20, 32, 31, 0.08);
   --gold: #D4A63A;
   --white: #FFFFFF;
+  --on-primary-soft: #CFE6E3;
+  --outer: #E9E5DC;
+  --soft-text: #3A4847;
+  --neutral-tint: #E9E6DF;
+  --tab-idle: #5B6766;
+  --c0: #0E6B6B; --c1: #14201F; --c2: #4E9C97; --c3: #6E8C8A; --c4: #2F5D7C; --c5: #8A6E4B; --c6: #5B4B7A;
   --radius: 16px;
   --display: 'Fraunces', Georgia, serif;
   --ui: 'Manrope', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; background: #E9E5DC; color: var(--ink); font-family: var(--ui); -webkit-font-smoothing: antialiased; }
+html, body { margin: 0; background: var(--outer); color: var(--ink); font-family: var(--ui); -webkit-font-smoothing: antialiased; }
 button, input, select { font-family: inherit; color: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: 0.45; }
@@ -35,7 +41,7 @@ h1, h2, p { margin: 0; }
 
 .d { font-family: var(--display); font-weight: 600; font-variant-numeric: tabular-nums; }
 .lbl { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.lbl.light, .light { color: #CFE6E3; }
+.lbl.light, .light { color: var(--on-primary-soft); }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
 .tiny { font-size: 12px; }
@@ -134,7 +140,7 @@ h1, h2, p { margin: 0; }
 
 /* Tab bar */
 .tabbar { position: sticky; bottom: 0; z-index: 5; display: flex; justify-content: space-around; padding: 8px 8px calc(16px + env(safe-area-inset-bottom)); background: var(--white); border-top: 1px solid var(--line); }
-.tab { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 64px; min-height: 48px; font-size: 11px; font-weight: 700; color: #5B6766; }
+.tab { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 64px; min-height: 48px; font-size: 11px; font-weight: 700; color: var(--tab-idle); }
 .tab.on { color: var(--teal); }
 
 /* Week */
@@ -144,7 +150,7 @@ h1, h2, p { margin: 0; }
 .lg span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; }
 .days { display: flex; align-items: flex-end; height: 150px; margin: 12px 0 8px; }
 .day { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
-.col { width: 24px; border-radius: 6px; background: rgba(14, 107, 107, 0.15); display: flex; align-items: flex-end; overflow: hidden; }
+.col { width: 24px; border-radius: 6px; background: color-mix(in srgb, var(--teal) 15%, transparent); display: flex; align-items: flex-end; overflow: hidden; }
 .col.today { outline: 2px solid var(--teal); outline-offset: 2px; }
 .col > div { width: 100%; background: var(--teal); }
 .dl { font-size: 12px; font-weight: 700; color: var(--muted); }
@@ -158,7 +164,7 @@ h1, h2, p { margin: 0; }
 .badge { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 6px; border: 1.5px solid rgba(20, 32, 31, 0.25); }
 .pace { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
 .pace.good { background: var(--teal-tint); color: var(--teal-dark); }
-.pace.ink { background: #E9E6DF; color: var(--ink); }
+.pace.ink { background: var(--neutral-tint); color: var(--ink); }
 .pace.gold { background: var(--gold); color: var(--ink); }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .stats > div { background: var(--white); border-radius: 14px; padding: 10px 12px; }
@@ -196,7 +202,7 @@ h1, h2, p { margin: 0; }
 .r4 { grid-template-columns: 1.4fr 0.8fr 0.8fr 1.2fr; border-bottom-style: dashed; border-color: rgba(20, 32, 31, 0.2); }
 .r4 span:last-child { text-align: right; }
 .head { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.tag { font-size: 12px; padding: 2px 6px; border-radius: 6px; background: #E9E6DF; margin-left: 6px; }
+.tag { font-size: 12px; padding: 2px 6px; border-radius: 6px; background: var(--neutral-tint); margin-left: 6px; }
 .receipt { position: relative; background: var(--white); border-radius: var(--radius); padding: 20px 18px 22px; }
 .brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .rtable { margin-top: 14px; }
@@ -215,7 +221,7 @@ h1, h2, p { margin: 0; }
 /* Onboarding */
 .welcome { flex: 1; padding: 96px 28px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0; min-height: 100vh; }
 .welcome h1 { font-size: 38px; line-height: 1.1; margin-top: 40px; }
-.welcome p { font-size: 17px; line-height: 1.5; color: #3A4847; margin-top: 16px; }
+.welcome p { font-size: 17px; line-height: 1.5; color: var(--soft-text); margin-top: 16px; }
 .welcome .btn { margin-top: 24px; }
 .dots { margin-top: auto; display: flex; gap: 8px; }
 .dots span { width: 8px; height: 8px; border-radius: 4px; background: rgba(20, 32, 31, 0.2); }
@@ -231,3 +237,12 @@ h1, h2, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* Theme picker */
+.themes { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.theme-opt { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 64px; padding: 10px 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--white); text-align: left; }
+.theme-opt.on { border: 2px solid var(--teal); box-shadow: 0 0 0 3px var(--teal-tint); }
+.theme-sw { display: flex; flex-shrink: 0; border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 1px rgba(20, 32, 31, 0.12); }
+.theme-sw span { width: 16px; height: 36px; }
+.theme-opt .tn { flex: 1; display: flex; flex-direction: column; }
+.theme-opt .tn small { font-size: 13px; color: var(--muted); font-weight: 500; }

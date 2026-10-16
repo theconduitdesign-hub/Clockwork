@@ -13,7 +13,7 @@ export default function Settings({ state, dispatch, back }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `clockwork-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `pocketwatch-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setMsg('Backup downloaded.');
@@ -28,7 +28,7 @@ export default function Settings({ state, dispatch, back }) {
       dispatch({ type: 'import', state: data });
       setMsg('Backup restored.');
     } catch {
-      setMsg("That file isn't a Clockwork backup.");
+      setMsg("That file isn't a Pocketwatch backup.");
     }
     e.target.value = '';
   };

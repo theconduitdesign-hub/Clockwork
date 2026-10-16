@@ -33,7 +33,7 @@ export default function Savings({ state, dispatch, now, open, sheet }) {
                 <span className="strong">{g.name}</span>
                 <span className="muted small num">{fmt(g.saved)} of {fmt(g.targetMin)}</span>
               </div>
-              <Bar value={g.saved} max={g.targetMin} color="#D4A63A" thick />
+              <Bar value={g.saved} max={g.targetMin} color="var(--gold)" thick />
               <div className="split" style={{ marginTop: 8 }}>
                 <span className="muted small">{complete ? 'Fully funded. Go enjoy it.' : `${fmt(g.targetMin - g.saved)} to go`}</span>
                 <span className="li-right">
