@@ -95,6 +95,8 @@ export const Icon = {
   chevron: () => (<svg {...ic} width="16" height="16" strokeWidth="2"><path d="M9 5l7 7-7 7" /></svg>),
   play: () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>),
   stop: () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>),
+  lock: () => (<svg {...ic} width="14" height="14" strokeWidth="2.2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>),
+  calendar: () => (<svg {...ic}><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" /></svg>),
   trash: () => (<svg {...ic} width="18" height="18"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" /></svg>),
 };
 
@@ -239,5 +241,78 @@ export function Switch({ checked, onChange, label }) {
     >
       <span />
     </button>
+  );
+}
+
+// "2.5", "2,5", "2:30", "2h30", "2 h 30 m", "90m" → hours (or null when it can't be read).
+export function parseHours(text) {
+  const s = String(text).trim().toLowerCase().replace(',', '.');
+  if (!s) return null;
+  let m;
+  if ((m = s.match(/^(\d+):(\d{1,2})$/))) return Number(m[1]) + Number(m[2]) / 60;
+  if ((m = s.match(/^(\d+(?:\.\d+)?)\s*m(?:in)?s?$/))) return Number(m[1]) / 60;
+  if ((m = s.match(/^(\d+(?:\.\d+)?)\s*h(?:ours?|rs?)?\s*(?:(\d+)\s*m?(?:in)?s?)?$/))) return Number(m[1]) + (m[2] ? Number(m[2]) / 60 : 0);
+  if (/^\d+(\.\d+)?$/.test(s)) return Number(s);
+  return null;
+}
+
+const tidy = (h) => String(Math.round(h * 100) / 100);
+
+// Type the hours straight in, with small − / + for nudges.
+export function HoursInput({ id, value, onChange, min = 0, max = 744, step = 0.5, label }) {
+  const [text, setText] = React.useState(tidy(value));
+  const [focused, setFocused] = React.useState(false);
+  React.useEffect(() => {
+    if (!focused) setText(tidy(value));
+  }, [value, focused]);
+  const clamp = (v) => Math.min(max, Math.max(min, v));
+  const commit = (raw) => {
+    const h = parseHours(raw);
+    if (h != null) onChange(clamp(h));
+  };
+  return (
+    <div className="hours-in">
+      <button type="button" className="ib soft" aria-label={`Less ${label}`} onClick={() => onChange(clamp(Math.round((value - step) * 2) / 2))}>
+        &#8722;
+      </button>
+      <label className="hours-field">
+        <span className="sr">{label}</span>
+        <input
+          id={id}
+          className="d"
+          inputMode="decimal"
+          value={text}
+          onFocus={(e) => {
+            setFocused(true);
+            e.target.select();
+          }}
+          onChange={(e) => {
+            setText(e.target.value);
+            commit(e.target.value);
+          }}
+          onBlur={() => {
+            setFocused(false);
+            setText(tidy(value));
+          }}
+        />
+        <span className="hours-unit">h</span>
+      </label>
+      <button type="button" className="ib soft" aria-label={`More ${label}`} onClick={() => onChange(clamp(Math.round((value + step) * 2) / 2))}>
+        +
+      </button>
+    </div>
+  );
+}
+
+// A row of mutually exclusive choices.
+export function Segmented({ value, onChange, options, label }) {
+  return (
+    <div className="seg" role="radiogroup" aria-label={label}>
+      {options.map(([v, text]) => (
+        <button key={v} type="button" role="radio" aria-checked={value === v} className={value === v ? 'on' : ''} onClick={() => onChange(v)}>
+          {text}
+        </button>
+      ))}
+    </div>
   );
 }

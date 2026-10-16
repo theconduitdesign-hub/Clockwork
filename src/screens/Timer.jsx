@@ -2,7 +2,7 @@ import React from 'react';
 import { Header, Icon, IconButton, Ring, Say } from '../components/ui.jsx';
 import { dailyBudget, dayRange, logged } from '../budget.js';
 import { tcolor } from '../store.js';
-import { dayIndex, fmt, fmtClock } from '../time.js';
+import { fmt, fmtClock } from '../time.js';
 
 export function TimerBanner({ state, dispatch, now, open }) {
   if (!state.timer) return null;
@@ -42,7 +42,7 @@ export default function TimerView({ state, dispatch, now, back }) {
     );
   }
   const [from, to] = dayRange(now);
-  const budget = dailyBudget(t, state.fixedCosts, dayIndex(now));
+  const budget = dailyBudget(t, state.fixedCosts, now);
   const spent = logged(state, t.id, from, to, now);
   const rem = budget - spent;
   const others = state.targets.filter((x) => x.id !== t.id);

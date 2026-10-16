@@ -1,9 +1,9 @@
 import React from 'react';
 import { Bar, DoneBadge, Header, Icon, IconButton, Logo, Ring, Say } from '../components/ui.jsx';
-import { dailyBudget, dayRange, freeForDay, logged, weekRange } from '../budget.js';
+import { dailyBudget, dayRange, freeForDay, isDone, logged, weekBudget, weekRange } from '../budget.js';
 import { useDesktop } from '../useDesktop.js';
 import { tcolor } from '../store.js';
-import { DAY_NAMES, dateLabel, dayIndex, fmt, greeting, weekKey, weekRangeLabel, weekStart } from '../time.js';
+import { DAY_NAMES, dateLabel, dayIndex, fmt, greeting, weekRangeLabel, weekStart } from '../time.js';
 
 function hm(min) {
   const m = Math.round(Math.max(0, min));
@@ -11,14 +11,12 @@ function hm(min) {
 }
 
 export function todayRows(state, now) {
-  const idx = dayIndex(now);
   const [from, to] = dayRange(now);
-  const wk = weekKey(now);
   return state.targets.map((t) => ({
     target: t,
-    budget: dailyBudget(t, state.fixedCosts, idx),
+    budget: dailyBudget(t, state.fixedCosts, now),
     spent: logged(state, t.id, from, to, now),
-    done: !!t.done?.[wk],
+    done: isDone(t, now),
   }));
 }
 
@@ -134,7 +132,7 @@ export default function Today({ state, dispatch, now, open, sheet }) {
                     <button type="button" key={t.id} className="lg" onClick={() => open({ name: 'target', id: t.id })}>
                       <span className="dot" style={{ background: tcolor(t) }} />
                       <b>{t.name}</b>
-                      <span>{Math.round(logged(state, t.id, wFrom, wTo, now) / 6) / 10} / {t.weeklyHours} h</span>
+                      <span>{Math.round(logged(state, t.id, wFrom, wTo, now) / 6) / 10} / {Math.round(weekBudget(t, state.fixedCosts, now) / 6) / 10} h</span>
                     </button>
                   ))}
                 </div>

@@ -66,7 +66,6 @@ export default function App() {
 
   const close = () => setSheet(null);
   const editing = sheet?.name === 'targetForm' && sheet.id ? state.targets.find((t) => t.id === sheet.id) : null;
-  const otherAllocated = state.targets.filter((t) => t.id !== editing?.id).reduce((s, t) => s + t.weeklyHours, 0);
 
   // Desktop: which sidebar item is lit, and what each one does.
   const active = view?.name === 'statement' || view?.name === 'settings' ? view.name : tab;
@@ -100,8 +99,7 @@ export default function App() {
           <TargetForm
             key={editing?.id || 'new'}
             initial={editing}
-            fixedCosts={state.fixedCosts}
-            otherAllocated={otherAllocated}
+            state={state}
             submitLabel={editing ? 'Save changes' : 'Create target'}
             onSave={(target) => {
               if (editing) dispatch({ type: 'updateTarget', id: editing.id, patch: target });

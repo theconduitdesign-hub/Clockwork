@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header, Icon, IconButton, Logo, Ring } from '../components/ui.jsx';
-import { freeForDay, logged, weekFree, weekRange } from '../budget.js';
+import { freeForDay, logged, weekBudget, weekFree, weekRange } from '../budget.js';
+import WeekCalendar from '../components/WeekCalendar.jsx';
 import { tcolor } from '../store.js';
 import { DesktopOnly, MobileOnly, useDesktop } from '../useDesktop.js';
 import { DAY_LETTERS, DAY_MS, addDays, dayIndex, fmt, weekRangeLabel, weekStart } from '../time.js';
@@ -10,11 +11,12 @@ export default function Week({ state, now, open }) {
   const ws = weekStart(now);
   const [from, to] = weekRange(now);
   const free = weekFree(state.fixedCosts);
-  const allocated = state.targets.reduce((s, t) => s + t.weeklyHours * 60, 0);
+  const plans = state.targets.map((t) => weekBudget(t, state.fixedCosts, now));
+  const allocated = plans.reduce((s, v) => s + v, 0);
   const buffer = Math.max(0, free - allocated);
   const total = Math.max(free, allocated);
   const segments = [
-    ...state.targets.map((t) => ({ value: t.weeklyHours * 60, color: tcolor(t) })),
+    ...state.targets.map((t, i) => ({ value: plans[i], color: tcolor(t) })),
     { value: buffer, color: 'rgba(20,32,31,0.06)' },
   ];
   const today = dayIndex(now);
@@ -47,7 +49,7 @@ export default function Week({ state, now, open }) {
               <button type="button" key={t.id} className="lg" onClick={() => open({ name: 'target', id: t.id })}>
                 <span className="dot" style={{ background: tcolor(t) }} />
                 <b>{t.name}</b>
-                <span>{Math.round(logged(state, t.id, from, to, now) / 6) / 10} / {t.weeklyHours}</span>
+                <span>{Math.round(logged(state, t.id, from, to, now) / 6) / 10} / {Math.round(plans[state.targets.indexOf(t)] / 6) / 10}</span>
               </button>
             ))}
             <div className="lg">
@@ -84,6 +86,7 @@ export default function Week({ state, now, open }) {
           </div>
         </div>
         </div>
+        <WeekCalendar state={state} now={now} open={open} desktop={desktop} />
         <MobileOnly><button type="button" className="btn2" onClick={() => open({ name: 'statement' })}>Week statement</button></MobileOnly>
       </main>
     </>

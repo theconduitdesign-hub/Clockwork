@@ -83,7 +83,7 @@ export default function Onboarding({ state, dispatch }) {
       <main className="main">
         <h1 className="d h1">Your first target</h1>
         <TargetForm
-          fixedCosts={state.fixedCosts}
+          state={state}
           submitLabel="Create target"
           onSave={(target) => {
             dispatch({ type: 'addTarget', target });

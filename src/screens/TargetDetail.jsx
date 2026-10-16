@@ -1,9 +1,10 @@
 import React from 'react';
 import { Header, Icon, IconButton, Say } from '../components/ui.jsx';
 import { PaceTag } from './Targets.jsx';
-import { dailyBudget, logged, pace } from '../budget.js';
+import { SCOPES, logged, pace, periodKey, plannedOn } from '../budget.js';
+import Markdown, { checklistProgress } from '../components/Markdown.jsx';
 import { tcolor } from '../store.js';
-import { DAY_LETTERS, DAY_MS, DAY_NAMES, addDays, dayIndex, fmt, weekKey, weekStart } from '../time.js';
+import { DAY_LETTERS, DAY_MS, DAY_NAMES, addDays, dayIndex, fmt, monthName, weekStart } from '../time.js';
 
 export default function TargetDetail({ state, dispatch, now, back, sheet, id, embedded }) {
   const t = state.targets.find((x) => x.id === id);
@@ -16,21 +17,25 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id, em
     );
   }
   const ws = weekStart(now);
-  const wk = weekKey(now);
+  const key = periodKey(t.scope, now);
+  const noun = t.scope === 'monthly' ? `in ${monthName(now)}` : SCOPES[t.scope].noun;
+  const byEnd = t.scope === 'daily' ? 'by tonight' : t.scope === 'monthly' ? `by the end of ${monthName(now)}` : 'by Sunday';
+  const checks = checklistProgress(t.doneWhen);
   const p = pace(state, t, now);
   const left = p.budget - p.actual;
   const today = dayIndex(now);
 
   let line;
   if (p.done) line = left > 0 ? `Done, with ${fmt(left)} to spare. That goes to savings when the week settles.` : 'Done. Well budgeted.';
+  else if (checks.total && checks.done === checks.total) line = `Every box is ticked. Mark it done and the ${fmt(Math.max(0, left))} left goes to savings.`;
   else if (p.actual > p.budget) line = `${fmt(p.actual - p.budget)} over budget. It'll be borrowed from savings when the week settles.`;
   else if (p.projected == null) line = 'Early days. Log some time and I will forecast your pace.';
-  else if (p.projected >= p.budget - 1) line = `At this pace you'll reach ${fmt(p.budget)} by Sunday. Right on time.`;
+  else if (p.projected >= p.budget - 1) line = `At this pace you'll reach ${fmt(p.budget)} ${byEnd}. Right on time.`;
   else line = `At this pace you'll land around ${fmt(p.projected)}. ${fmt(p.budget - p.projected)} to catch up.`;
 
   const days = DAY_LETTERS.map((l, i) => {
     const ds = addDays(ws, i).getTime();
-    return { l, plan: dailyBudget(t, state.fixedCosts, i), done: logged(state, t.id, ds, ds + DAY_MS, now) };
+    return { l, plan: plannedOn(t, state.fixedCosts, ds), done: logged(state, t.id, ds, ds + DAY_MS, now) };
   });
   const maxH = Math.max(...days.map((d) => Math.max(d.plan, d.done)), 1);
   const entries = state.entries
@@ -58,22 +63,35 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id, em
               </>
             )}
           </div>
-          {t.doneWhen && <div className="muted">Done when: {t.doneWhen}</div>}
+          <div className="tags">
+            <span className="tag-scope">{SCOPES[t.scope].label} · {fmt(t.hours * 60)} {SCOPES[t.scope].per}</span>
+            {t.slot === 'strict' && <span className="badge strict"><Icon.lock />Strict</span>}
+            {t.client && <span className="badge">Client</span>}
+          </div>
         </div>
+        {t.doneWhen && (
+          <div className="card done-when">
+            <div className="split">
+              <span className="lbl">Done when</span>
+              {checks.total > 0 && <span className="muted small num">{checks.done} of {checks.total}</span>}
+            </div>
+            <Markdown source={t.doneWhen} onChange={(md) => dispatch({ type: 'updateTarget', id: t.id, patch: { doneWhen: md } })} />
+          </div>
+        )}
         <div className="stats">
-          <div><div className="lbl">Budget</div><div className="d">{fmt(p.budget)}</div></div>
+          <div><div className="lbl">Budget {noun}</div><div className="d">{fmt(p.budget)}</div></div>
           <div><div className="lbl">Spent</div><div className="d">{fmt(p.actual)}</div></div>
           <div><div className="lbl">{left >= 0 ? 'Left' : 'Over'}</div><div className="d">{fmt(Math.abs(left))}</div></div>
         </div>
         {t.client && Number(t.rate) > 0 && (
           <div className="card split">
-            <span className="strong">Billable this week</span>
+            <span className="strong">Billable {noun}</span>
             <span className="d big-num">{Math.round((p.actual / 60) * Number(t.rate)).toLocaleString()}</span>
           </div>
         )}
         <Say>{line}</Say>
         <div className="card">
-          <div className="lbl">Planned vs logged</div>
+          <div className="lbl">This week: planned vs logged</div>
           <div className="days">
             {days.map((d, i) => (
               <div className="day" key={i} title={`${DAY_NAMES[i]}: ${fmt(d.done)} of ${fmt(d.plan)}`}>
@@ -117,8 +135,8 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id, em
           )}
         </div>
         <div>
-          <button type="button" className={p.done ? 'btn2' : 'btn'} onClick={() => dispatch({ type: 'toggleDone', id: t.id, wk })}>
-            {p.done ? 'Not done after all' : 'Mark as done this week'}
+          <button type="button" className={p.done ? 'btn2' : 'btn'} onClick={() => dispatch({ type: 'toggleDone', id: t.id, key })}>
+            {p.done ? 'Not done after all' : `Mark as done ${t.scope === 'monthly' ? 'this month' : SCOPES[t.scope].noun}`}
           </button>
           <p className="muted small center">Finishing under budget banks the difference as saved hours.</p>
         </div>
