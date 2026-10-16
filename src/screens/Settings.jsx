@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Header, Icon, IconButton } from '../components/ui.jsx';
 import { FixedCostsEditor } from '../components/forms.jsx';
+import { THEMES } from '../themes.js';
 
 export default function Settings({ state, dispatch, back }) {
   const fileRef = useRef(null);
@@ -38,7 +39,35 @@ export default function Settings({ state, dispatch, back }) {
         <h1 className="d title-lg">Settings</h1>
       </Header>
       <main className="main">
-        <div className="lbl">Your fixed costs</div>
+        <div className="lbl">Theme</div>
+        <div className="themes" role="radiogroup" aria-label="Theme">
+          {THEMES.map((t) => {
+            const on = (state.theme || 'teal') === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                className={on ? 'theme-opt on' : 'theme-opt'}
+                onClick={() => dispatch({ type: 'setTheme', theme: t.id })}
+              >
+                <span className="theme-sw" aria-hidden="true">
+                  <span style={{ background: t.vars['--teal'] }} />
+                  <span style={{ background: t.vars['--sand'] }} />
+                  <span style={{ background: t.vars['--ink'] }} />
+                  <span style={{ background: t.vars['--gold'] }} />
+                </span>
+                <span className="tn">
+                  <span className="strong">{t.name}</span>
+                  <small>{t.note}</small>
+                </span>
+                {on && <span className="small strong" style={{ color: 'var(--teal)' }}>In use</span>}
+              </button>
+            );
+          })}
+        </div>
+        <div className="lbl" style={{ marginTop: 8 }}>Your fixed costs</div>
         <FixedCostsEditor list={state.fixedCosts} onChange={(list) => dispatch({ type: 'setFixed', list })} />
         <div className="lbl" style={{ marginTop: 8 }}>Your data</div>
         <div className="card list">
