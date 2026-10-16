@@ -82,44 +82,112 @@ export function freeBetween(fixedCosts, from, to) {
 }
 
 // ---------- Plans ----------
+//
+// Two views of a plan:
+// - static: how a period's budget was spread when the period began (statements, totals, past days).
+// - live: from today on, whatever the target still needs this period is re-spread over the days left,
+//   so missing Tuesday quietly moves the work to Wednesday onwards instead of leaving you "behind".
+//
+// A target created part-way through a period gets a smaller first budget (target.start), and its
+// plan covers only the days from its creation, so you're never behind for days before it existed.
 
-// Minutes a target is planned for on the day starting at dayMs.
-export function plannedOn(target, fixedCosts, dayMs) {
-  const amount = (target.hours || 0) * 60;
-  const free = freeForDay(fixedCosts, dayIndex(dayMs));
-  if (target.scope === 'daily') return amount;
-  if (target.scope === 'monthly') {
-    const [ms, me] = monthRange(dayMs);
-    const pool = freeBetween(fixedCosts, ms, me);
-    return pool ? (amount * free) / pool : 0;
-  }
-  const total = weekFree(fixedCosts);
-  return total ? (amount * free) / total : 0;
+export function periodOf(scope, ms) {
+  const [from, to] = scopeRange(scope, ms);
+  return { from, to, key: periodKey(scope, ms) };
 }
 
-export function plannedBetween(target, fixedCosts, from, to) {
+// Minutes budgeted for the period with this key.
+export function periodBudget(t, key) {
+  if (t.start && t.start.key === key) return (t.start.hours || 0) * 60;
+  return (t.hours || 0) * 60;
+}
+
+// The first day the plan covers in the period starting at `from`.
+function effectiveFrom(t, from) {
+  if (t.start && t.start.key === periodKey(t.scope, from) && t.createdAt) {
+    return Math.max(from, startOfDay(t.createdAt).getTime());
+  }
+  return from;
+}
+
+// The moment a target's plan starts in a period: its creation time in its first period, else the period start.
+function anchorOf(t, from, key) {
+  return t.start && t.start.key === key && t.createdAt > from ? t.createdAt : from;
+}
+
+// Free minutes a day contributes from `anchor` on (only the creation day is partial).
+function dayWeight(fixedCosts, dayMs, anchor) {
+  return freeFromNow(fixedCosts, Math.max(dayMs, anchor), addDays(dayMs, 1).getTime());
+}
+
+// Static plan: minutes on the day starting at dayMs.
+export function plannedOn(t, fixedCosts, dayMs) {
+  const { from, to, key } = periodOf(t.scope, dayMs);
+  const ef = effectiveFrom(t, from);
+  if (dayMs < ef) return 0;
+  const budget = periodBudget(t, key);
+  if (t.scope === 'daily') return budget;
+  const anchor = anchorOf(t, from, key);
+  const poolFree = freeFromNow(fixedCosts, anchor, to);
+  return poolFree ? (budget * dayWeight(fixedCosts, dayMs, anchor)) / poolFree : 0;
+}
+
+export function plannedBetween(t, fixedCosts, from, to) {
   let s = 0;
-  eachDay(from, to, (d) => (s += plannedOn(target, fixedCosts, d)));
+  eachDay(from, to, (d) => (s += plannedOn(t, fixedCosts, d)));
   return s;
 }
 
-export function dailyBudget(target, fixedCosts, now) {
-  return plannedOn(target, fixedCosts, startOfDay(now).getTime());
+// Live plan: today and later re-spread what's still needed this period.
+export function liveOn(state, t, dayMs, now = Date.now()) {
+  const fc = state.fixedCosts;
+  const today = startOfDay(now).getTime();
+  if (dayMs < today || t.scope === 'daily') return plannedOn(t, fc, dayMs);
+  const { from, to, key } = periodOf(t.scope, dayMs);
+  if (from > today) return plannedOn(t, fc, dayMs); // a future period: not started yet
+  const ef = Math.max(effectiveFrom(t, from), today);
+  if (dayMs < ef) return 0;
+  const need = Math.max(0, periodBudget(t, key) - logged(state, t.id, from, today, now));
+  const anchor = Math.max(today, anchorOf(t, from, key));
+  const poolFree = freeFromNow(fc, anchor, to);
+  return poolFree ? (need * dayWeight(fc, dayMs, anchor)) / poolFree : 0;
 }
 
-export function weekBudget(target, fixedCosts, now) {
+// Today's share for a target (live).
+export function dailyBudget(state, t, now = Date.now()) {
+  return liveOn(state, t, startOfDay(now).getTime(), now);
+}
+
+// This week's total for a target (static).
+export function weekBudget(t, fixedCosts, now) {
   const [from, to] = weekRange(now);
-  return plannedBetween(target, fixedCosts, from, to);
+  return plannedBetween(t, fixedCosts, from, to);
 }
 
-// A scope's pool: free time in the period, what other targets already plan in it, what's left.
-export function pool(state, scope, now, exceptId) {
-  const [from, to] = scopeRange(scope, now);
-  const free = freeBetween(state.fixedCosts, from, to);
-  const planned = state.targets
-    .filter((t) => t.id !== exceptId)
-    .reduce((s, t) => s + plannedBetween(t, state.fixedCosts, from, to), 0);
-  return { from, to, free, planned, left: free - planned };
+// Free minutes from `now` to `to`: what's left of today, plus every day after.
+export function freeFromNow(fixedCosts, now, to) {
+  const today = startOfDay(now).getTime();
+  const tomorrow = addDays(today, 1).getTime();
+  const dayLeft = 1 - (now - today) / DAY_MS;
+  return freeForDay(fixedCosts, dayIndex(now)) * dayLeft + (to > tomorrow ? freeBetween(fixedCosts, tomorrow, to) : 0);
+}
+
+// The pool from now to the end of the scope: free time left, what other targets still need, what's left.
+export function pool(state, scope, now = Date.now(), exceptId) {
+  const fc = state.fixedCosts;
+  const { from, to } = periodOf(scope, now);
+  const today = startOfDay(now).getTime();
+  const free = freeFromNow(fc, now, to);
+  let planned = 0;
+  for (const t of state.targets) {
+    if (t.id === exceptId) continue;
+    eachDay(today, to, (d) => {
+      const plan = liveOn(state, t, d, now);
+      planned += d === today ? Math.max(0, plan - logged(state, t.id, today, now, now)) : plan;
+    });
+  }
+  const periodFree = freeBetween(fc, from, to);
+  return { from, to, free, planned, left: free - planned, periodFree, fraction: periodFree ? Math.min(1, free / periodFree) : 0 };
 }
 
 // ---------- Logged time ----------
@@ -157,12 +225,13 @@ export function isDone(target, now) {
 
 // Pace for a target in its own scope: on pace, ahead or behind, and a forecast.
 export function pace(state, target, now = Date.now()) {
-  const [from, to] = scopeRange(target.scope, now);
-  const budget = plannedBetween(target, state.fixedCosts, from, to);
+  const { from, to, key } = periodOf(target.scope, now);
+  const budget = periodBudget(target, key);
   const actual = logged(state, target.id, from, to, now);
-  // Pace only counts time since the target existed: a target made mid-month isn't behind on day one.
-  const start = Math.max(from, startOfDay(target.createdAt || from).getTime());
-  const frac = elapsedFraction(state.fixedCosts, Math.min(start, to), to, now);
+  // Pace only counts free time since the target existed: a target made mid-week isn't behind on day one.
+  const start = Math.min(to, Math.max(from, target.createdAt || from));
+  const totalFree = freeFromNow(state.fixedCosts, start, to);
+  const frac = totalFree ? Math.min(1, (totalFree - freeFromNow(state.fixedCosts, Math.max(now, start), to)) / totalFree) : 0;
   const expected = budget * frac;
   const diff = actual - expected;
   const done = isDone(target, now);
@@ -172,6 +241,8 @@ export function pace(state, target, now = Date.now()) {
   if (done) {
     label = 'Done';
     tone = 'gold';
+  } else if (budget === 0 && target.start?.key === key) {
+    label = target.scope === 'daily' ? 'Starts tomorrow' : target.scope === 'monthly' ? 'Starts next month' : 'Starts Monday';
   } else if (actual > budget + 0.5) {
     label = 'Over budget';
     tone = 'ink';
@@ -212,7 +283,7 @@ function rowResult(state, t, from, to) {
     while (cursor < to) {
       const [ms, me] = monthRange(cursor);
       const segEnd = Math.min(me, to);
-      const budget = (t.hours || 0) * 60;
+      const budget = periodBudget(t, periodKey('monthly', cursor));
       result -= monthOverBy(state, t, ms, segEnd, budget) - monthOverBy(state, t, ms, cursor, budget);
       const doneAt = t.done?.[periodKey('monthly', cursor)];
       if (typeof doneAt === 'number' && doneAt >= cursor && doneAt < segEnd) {
@@ -222,7 +293,7 @@ function rowResult(state, t, from, to) {
     }
     return result;
   }
-  const budget = plannedBetween(t, fc, from, to);
+  const budget = periodBudget(t, weekKey(from));
   const actual = logged(state, t.id, from, to);
   if (actual > budget + 0.5) return -(actual - budget);
   if (t.done?.[weekKey(from)] && budget - actual > 0.5) return budget - actual;

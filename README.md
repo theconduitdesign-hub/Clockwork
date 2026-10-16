@@ -26,6 +26,8 @@ Then open the address it prints (usually http://localhost:5173). `npm run build`
 ## Targets
 
 - **Daily, weekly or monthly.** Each target draws from its own pool: today's free time, this week's, or this month's. The form shows the pool, what's already planned in it, and what this target leaves.
+- **Measured from now.** The form shows what's left of today, this week or this month from this moment, minus what other targets still need. A target added mid-week gets a fair first week, worked out from the time left (you can change it), or starts next week if there's barely any week left. After that it runs at the full amount.
+- **Re-spread daily.** From today on, whatever a target still needs this period is spread over the days left, so a missed day moves forward instead of turning into "behind".
 - **Hours are typed straight in.** "2.5", "2:30", "45m" and "2h30" all work; − and + nudge by half an hour.
 - **Strict or flexible.** Strict time is like a fixed savings account: editing it asks you to unlock first. Flexible time can slide or shrink.
 - **Done when** takes markdown: `- [ ]` checklists you can tick on the target's page, **bold**, headings and lists.

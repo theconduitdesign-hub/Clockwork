@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header, Icon, IconButton, Say } from '../components/ui.jsx';
 import { PaceTag } from './Targets.jsx';
-import { SCOPES, logged, pace, periodKey, plannedOn } from '../budget.js';
+import { SCOPES, liveOn, logged, pace, periodKey } from '../budget.js';
 import Markdown, { checklistProgress } from '../components/Markdown.jsx';
 import { tcolor } from '../store.js';
 import { DAY_LETTERS, DAY_MS, DAY_NAMES, addDays, dayIndex, fmt, monthName, weekStart } from '../time.js';
@@ -35,7 +35,7 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id, em
 
   const days = DAY_LETTERS.map((l, i) => {
     const ds = addDays(ws, i).getTime();
-    return { l, plan: plannedOn(t, state.fixedCosts, ds), done: logged(state, t.id, ds, ds + DAY_MS, now) };
+    return { l, plan: liveOn(state, t, ds, now), done: logged(state, t.id, ds, ds + DAY_MS, now) };
   });
   const maxH = Math.max(...days.map((d) => Math.max(d.plan, d.done)), 1);
   const entries = state.entries

@@ -2,7 +2,7 @@
 // plus what's still unplanned. Seven days on desktop, three at a time on a phone.
 import React, { useState } from 'react';
 import { Icon } from './ui.jsx';
-import { freeForDay, logged, plannedOn } from '../budget.js';
+import { freeForDay, liveOn, logged } from '../budget.js';
 import { tcolor } from '../store.js';
 import { DAY_MS, DAY_NAMES, addDays, dayIndex, fmt, weekStart } from '../time.js';
 
@@ -20,7 +20,7 @@ export default function WeekCalendar({ state, now, open, desktop }) {
     const d = date.getTime();
     const free = freeForDay(state.fixedCosts, i);
     const blocks = state.targets
-      .map((t) => ({ t, mins: plannedOn(t, state.fixedCosts, d), got: logged(state, t.id, d, d + DAY_MS, now) }))
+      .map((t) => ({ t, mins: liveOn(state, t, d, now), got: logged(state, t.id, d, d + DAY_MS, now) }))
       .filter((b) => b.mins >= 1)
       .sort((a, b) => (a.t.slot === 'strict') === (b.t.slot === 'strict') ? b.mins - a.mins : a.t.slot === 'strict' ? -1 : 1);
     const planned = blocks.reduce((s, b) => s + b.mins, 0);

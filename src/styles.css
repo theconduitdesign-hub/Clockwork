@@ -452,3 +452,6 @@ fieldset.plain:disabled { opacity: 0.55; }
   .cal-grid { gap: 10px; }
   .cal-b { font-size: 13px; }
 }
+.first-row, .late-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--line); }
+.late-row { border-top: 0; padding: 8px 10px; border-radius: 10px; background: var(--white); }
+.first-row .hours-field input { width: 88px; height: 44px; font-size: 18px; }

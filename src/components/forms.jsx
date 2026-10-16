@@ -3,7 +3,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Bar, HoursInput, Icon, IconButton, Segmented, Switch } from './ui.jsx';
 import Markdown from './Markdown.jsx';
 import { uid } from '../store.js';
-import { SCOPES, pool, weekFixed } from '../budget.js';
+import { SCOPES, periodKey, pool, weekFixed } from '../budget.js';
 import { fmt, monthName, startOfDay } from '../time.js';
 
 export function FixedCostsEditor({ list, onChange }) {
@@ -133,17 +133,29 @@ export function TargetForm({ initial, state, submitLabel = 'Save', onSave, onDel
   const [unlocked, setUnlocked] = useState(initial?.slot !== 'strict');
   const locked = !unlocked;
 
+  // Everything is measured from now: what's left of today, this week or this month.
   const p = pool(state, scope, now, initial?.id);
-  const mine = hours * 60;
+  const curKey = periodKey(scope, now);
+  const showFirst = !initial || initial.start?.key === curKey || initial.scope !== scope;
+  const [firstOverride, setFirstOverride] = useState(initial?.start?.key === curKey ? initial.start.hours : null);
+  const [editFirst, setEditFirst] = useState(false);
+  const auto = Math.round(hours * p.fraction * 4) / 4;
+  const first = showFirst ? Math.min(hours, firstOverride ?? auto) : hours;
+  const partial = showFirst && p.fraction < 0.98;
+  const late = partial && p.free < Math.max(120, p.periodFree * 0.1);
+  const mine = (partial ? first : hours) * 60;
   const left = p.left - mine;
-  const poolName = scope === 'monthly' ? `${monthName(now)}'s` : SCOPES[scope].pool;
-  const PoolName = poolName.charAt(0).toUpperCase() + poolName.slice(1);
+  const rest = scope === 'daily' ? 'today' : scope === 'monthly' ? `in ${monthName(now)}` : 'this week';
+  const restOf = scope === 'daily' ? 'the rest of today' : scope === 'monthly' ? `the rest of ${monthName(now)}` : 'the rest of this week';
+  const nextStart = scope === 'daily' ? 'tomorrow' : scope === 'monthly' ? `1 ${monthName(new Date(new Date(now).getFullYear(), new Date(now).getMonth() + 1, 1))}` : 'Monday';
   const total = Math.max(p.free, p.planned + mine, 1);
 
   const submit = (e) => {
     e.preventDefault();
     if (!name.trim() || locked) return;
-    onSave({ name: name.trim(), scope, hours, slot, doneWhen: doneWhen.trim(), client, rate: client ? Number(rate) || 0 : '' });
+    const target = { name: name.trim(), scope, hours, slot, doneWhen: doneWhen.trim(), client, rate: client ? Number(rate) || 0 : '' };
+    if (showFirst) target.start = { key: curKey, hours: partial ? first : hours };
+    onSave(target);
   };
 
   return (
@@ -168,6 +180,8 @@ export function TargetForm({ initial, state, submitLabel = 'Save', onSave, onDel
             onChange={(v) => {
               setScope(v);
               setHours((h) => Math.min(h, MAX_HOURS[v]));
+              setFirstOverride(null);
+              setEditFirst(false);
             }}
             options={[['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly']]}
           />
@@ -178,19 +192,48 @@ export function TargetForm({ initial, state, submitLabel = 'Save', onSave, onDel
         </div>
         <div className="pool-box" aria-live="polite">
           <div className="split small">
-            <span className="strong">{PoolName} pool</span>
-            <span className="muted num">{fmt(p.free)} free</span>
+            <span className="strong">Left {rest}</span>
+            <span className="muted num">{fmt(p.free)} free from now</span>
           </div>
-          <div className="pool-bar" role="img" aria-label={`${fmt(p.planned)} already planned, this target ${fmt(mine)}, ${fmt(Math.max(0, left))} left`}>
+          <div className="pool-bar" role="img" aria-label={`Other targets still need ${fmt(p.planned)}, this target ${fmt(mine)}, ${fmt(Math.max(0, left))} left`}>
             <span style={{ width: `${(Math.min(p.planned, total) / total) * 100}%`, background: 'var(--ink)' }} />
             <span style={{ width: `${(Math.min(mine, total - Math.min(p.planned, total)) / total) * 100}%`, background: 'var(--teal)' }} />
           </div>
           <div className="pool-key small">
-            <span><i style={{ background: 'var(--ink)' }} />Already planned {fmt(p.planned)}</span>
+            <span><i style={{ background: 'var(--ink)' }} />Other targets still need {fmt(p.planned)}</span>
             <span><i style={{ background: 'var(--teal)' }} />This target {fmt(mine)}</span>
           </div>
+          {partial && (
+            <div className="first-row">
+              {first === 0 && firstOverride === 0 ? (
+                <>
+                  <span className="small">Starts {nextStart}, at the full {fmt(hours * 60)}.</span>
+                  <button type="button" className="btn-text tight" onClick={() => setFirstOverride(null)}>Start now instead</button>
+                </>
+              ) : editFirst ? (
+                <>
+                  <label htmlFor="t-first" className="small strong">For {restOf}</label>
+                  <HoursInput id="t-first" value={first} onChange={(v) => setFirstOverride(v)} max={hours} label={`hours for ${restOf}`} />
+                </>
+              ) : (
+                <>
+                  <span className="small">
+                    For {restOf}: <b>{fmt(first * 60)}</b>
+                    {firstOverride == null && <span className="muted"> (worked out from the time left)</span>}
+                  </span>
+                  <button type="button" className="btn-text tight" onClick={() => setEditFirst(true)}>Change</button>
+                </>
+              )}
+            </div>
+          )}
+          {late && firstOverride !== 0 && (
+            <div className="late-row small">
+              <span>Not much of {scope === 'daily' ? 'today' : scope === 'monthly' ? monthName(now) : 'this week'} left. Start {nextStart} instead?</span>
+              <button type="button" className="btn-text tight" onClick={() => setFirstOverride(0)}>Start {nextStart}</button>
+            </div>
+          )}
           <p className={left >= 0 ? 'small' : 'small strong'}>
-            {left >= 0 ? `Leaves ${fmt(left)} unplanned ${SCOPES[scope].noun === 'this month' ? `in ${monthName(now)}` : SCOPES[scope].noun}.` : `That's ${fmt(-left)} more than ${poolName} pool.`}
+            {left >= 0 ? `Leaves ${fmt(left)} free ${rest}.` : `That's ${fmt(-left)} more than you have left ${rest}.`}
           </p>
         </div>
         <div className="field">

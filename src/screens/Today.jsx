@@ -14,7 +14,7 @@ export function todayRows(state, now) {
   const [from, to] = dayRange(now);
   return state.targets.map((t) => ({
     target: t,
-    budget: dailyBudget(t, state.fixedCosts, now),
+    budget: dailyBudget(state, t, now),
     spent: logged(state, t.id, from, to, now),
     done: isDone(t, now),
   }));

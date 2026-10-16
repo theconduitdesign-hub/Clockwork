@@ -42,7 +42,7 @@ export default function TimerView({ state, dispatch, now, back }) {
     );
   }
   const [from, to] = dayRange(now);
-  const budget = dailyBudget(t, state.fixedCosts, now);
+  const budget = dailyBudget(state, t, now);
   const spent = logged(state, t.id, from, to, now);
   const rem = budget - spent;
   const others = state.targets.filter((x) => x.id !== t.id);
