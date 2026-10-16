@@ -14,6 +14,26 @@ export function tcolor(t) {
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
+// Brings any saved target up to the current shape. Older targets were weekly-only and
+// used a "protected" switch, which is now a strict slot.
+export function normalizeTarget(t) {
+  const scope = t.scope || 'weekly';
+  const hours = t.hours ?? t.weeklyHours ?? 0;
+  const slot = t.slot || (t.protected ? 'strict' : 'flexible');
+  const { weeklyHours, protected: _p, ...rest } = t;
+  return { ...rest, scope, hours, slot, doneWhen: t.doneWhen || '', done: t.done || {} };
+}
+
+function normalizeState(saved) {
+  const base = initialState();
+  return {
+    ...base,
+    ...saved,
+    targets: (saved.targets || []).map(normalizeTarget),
+    savings: { ...base.savings, ...(saved.savings || {}) },
+  };
+}
+
 export function initialState() {
   return {
     version: 1,
@@ -35,9 +55,7 @@ function load() {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
-      const saved = JSON.parse(raw);
-      const base = initialState();
-      return { ...base, ...saved, savings: { ...base.savings, ...(saved.savings || {}) } };
+      return normalizeState(JSON.parse(raw));
     }
   } catch {
     // Storage unavailable or corrupt: start fresh.
@@ -67,11 +85,11 @@ function reducer(s, a) {
         ...s,
         targets: [
           ...s.targets,
-          { id: uid(), createdAt: Date.now(), color: COLORS[s.targets.length % COLORS.length], done: {}, ...a.target },
+          normalizeTarget({ id: uid(), createdAt: Date.now(), color: COLORS[s.targets.length % COLORS.length], done: {}, ...a.target }),
         ],
       };
     case 'updateTarget':
-      return { ...s, targets: s.targets.map((t) => (t.id === a.id ? { ...t, ...a.patch } : t)) };
+      return { ...s, targets: s.targets.map((t) => (t.id === a.id ? normalizeTarget({ ...t, ...a.patch }) : t)) };
     case 'deleteTarget':
       return {
         ...s,
@@ -82,7 +100,14 @@ function reducer(s, a) {
     case 'toggleDone':
       return {
         ...s,
-        targets: s.targets.map((t) => (t.id === a.id ? { ...t, done: { ...t.done, [a.wk]: !t.done?.[a.wk] } } : t)),
+        // a.key is the period key (day, week or month). A done mark stores when it was made.
+        targets: s.targets.map((t) => {
+          if (t.id !== a.id) return t;
+          const done = { ...t.done };
+          if (done[a.key]) delete done[a.key];
+          else done[a.key] = Date.now();
+          return { ...t, done };
+        }),
       };
     case 'startTimer': {
       const stopped = stopTimer(s);
@@ -146,10 +171,8 @@ function reducer(s, a) {
     }
     case 'spendGoal':
       return { ...s, savings: { ...s.savings, goals: s.savings.goals.filter((x) => x.id !== a.id) } };
-    case 'import': {
-      const base = initialState();
-      return { ...base, ...a.state, savings: { ...base.savings, ...(a.state.savings || {}) } };
-    }
+    case 'import':
+      return normalizeState(a.state);
     case 'reset':
       return initialState();
     default:
@@ -159,6 +182,14 @@ function reducer(s, a) {
 
 export function useStore() {
   const [state, dispatch] = useReducer(reducer, undefined, load);
+  // Ask the browser to keep this site's storage even when space runs low (no sign-in needed).
+  useEffect(() => {
+    try {
+      navigator.storage?.persist?.();
+    } catch {
+      // Not supported: localStorage still works, it's just evictable.
+    }
+  }, []);
   useEffect(() => {
     try {
       localStorage.setItem(KEY, JSON.stringify(state));

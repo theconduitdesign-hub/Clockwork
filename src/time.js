@@ -32,6 +32,28 @@ export function weekKey(d = new Date()) {
   return `${s.getFullYear()}-${String(s.getMonth() + 1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
 }
 
+const pad = (n) => String(n).padStart(2, '0');
+
+// Local calendar keys: "2026-10-16" and "2026-10".
+export function dayKey(d = new Date()) {
+  const x = new Date(d);
+  return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
+}
+
+export function monthKey(d = new Date()) {
+  const x = new Date(d);
+  return `${x.getFullYear()}-${pad(x.getMonth() + 1)}`;
+}
+
+export function startOfMonth(d = new Date()) {
+  const x = new Date(d);
+  return new Date(x.getFullYear(), x.getMonth(), 1);
+}
+
+export function monthName(d = new Date()) {
+  return MONTHS[new Date(d).getMonth()];
+}
+
 export function dateLabel(d) {
   const x = new Date(d);
   return `${x.getDate()} ${MONTHS[x.getMonth()]}`;
