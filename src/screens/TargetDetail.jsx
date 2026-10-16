@@ -5,7 +5,7 @@ import { dailyBudget, logged, pace } from '../budget.js';
 import { tcolor } from '../store.js';
 import { DAY_LETTERS, DAY_MS, DAY_NAMES, addDays, dayIndex, fmt, weekKey, weekStart } from '../time.js';
 
-export default function TargetDetail({ state, dispatch, now, back, sheet, id }) {
+export default function TargetDetail({ state, dispatch, now, back, sheet, id, embedded }) {
   const t = state.targets.find((x) => x.id === id);
   if (!t) {
     return (
@@ -38,17 +38,25 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id }) 
     .sort((a, b) => b.start - a.start)
     .slice(0, 8);
 
-  return (
+  const edit = <button type="button" className="btn-text tight" onClick={() => sheet({ name: 'targetForm', id: t.id })}>Edit</button>;
+  const body = (
     <>
-      <Header
-        left={<IconButton label="Back" onClick={back}><Icon.back /></IconButton>}
-        right={<button type="button" className="btn-text tight" onClick={() => sheet({ name: 'targetForm', id: t.id })}>Edit</button>}
-      />
-      <main className="main">
         <div>
           <div className="split">
-            <h1 className="d h1-lg">{t.name}</h1>
-            <PaceTag p={p} />
+            {embedded ? (
+              <>
+                <span className="split-l">
+                  <h2 className="d h1">{t.name}</h2>
+                  <PaceTag p={p} />
+                </span>
+                {edit}
+              </>
+            ) : (
+              <>
+                <h1 className="d h1-lg">{t.name}</h1>
+                <PaceTag p={p} />
+              </>
+            )}
           </div>
           {t.doneWhen && <div className="muted">Done when: {t.doneWhen}</div>}
         </div>
@@ -114,7 +122,14 @@ export default function TargetDetail({ state, dispatch, now, back, sheet, id }) 
           </button>
           <p className="muted small center">Finishing under budget banks the difference as saved hours.</p>
         </div>
-      </main>
+    </>
+  );
+
+  if (embedded) return <section className="pane stack" aria-label={t.name}>{body}</section>;
+  return (
+    <>
+      <Header left={<IconButton label="Back" onClick={back}><Icon.back /></IconButton>} right={edit} />
+      <main className="main">{body}</main>
     </>
   );
 }

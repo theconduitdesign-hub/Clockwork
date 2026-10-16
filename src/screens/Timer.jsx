@@ -35,7 +35,7 @@ export default function TimerView({ state, dispatch, now, back }) {
     return (
       <>
         {header}
-        <main className="main">
+        <main className="main focus">
           <Say>No timer running. Start one from Today.</Say>
         </main>
       </>
@@ -49,7 +49,7 @@ export default function TimerView({ state, dispatch, now, back }) {
   return (
     <>
       {header}
-      <main className="main">
+      <main className="main focus">
         <div className="pill-name" style={{ alignSelf: 'center' }}>
           <span className="dot" style={{ background: tcolor(t) }} />
           {t.name}

@@ -87,6 +87,7 @@ export const Icon = {
   today: () => (<svg {...ic}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>),
   week: () => (<svg {...ic}><circle cx="12" cy="12" r="9" strokeOpacity="0.35" /><path d="M12 3a9 9 0 0 1 9 9" strokeWidth="3" /></svg>),
   targets: () => (<svg {...ic}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /></svg>),
+  statement: () => (<svg {...ic}><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6" /></svg>),
   savings: () => (<svg {...ic}><ellipse cx="12" cy="7" rx="7" ry="3" /><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7" /><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5" /></svg>),
   settings: () => (<svg {...ic} width="22" height="22"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></svg>),
   back: () => (<svg {...ic} width="22" height="22" strokeWidth="2"><path d="M15 5l-7 7 7 7" /></svg>),
@@ -151,6 +152,45 @@ export function TabBar({ tab, setTab }) {
         );
       })}
     </nav>
+  );
+}
+
+// Desktop sidebar: brand, main sections, settings at the bottom.
+const NAV = [
+  ['today', 'Today'],
+  ['week', 'Week'],
+  ['targets', 'Targets'],
+  ['statement', 'Statement'],
+  ['savings', 'Savings'],
+];
+
+export function Sidebar({ active, onNav }) {
+  const item = (id, label) => {
+    const I = Icon[id];
+    return (
+      <button
+        key={id}
+        type="button"
+        className={active === id ? 'nv on' : 'nv'}
+        aria-current={active === id ? 'page' : undefined}
+        onClick={() => onNav(id)}
+      >
+        <I />
+        {label}
+      </button>
+    );
+  };
+  return (
+    <aside className="side">
+      <div className="side-brand">
+        <Logo size={36} />
+        <span className="d">Pocketwatch</span>
+      </div>
+      <nav className="side-nav" aria-label="Main">
+        {NAV.map(([id, label]) => item(id, label))}
+      </nav>
+      <div className="side-foot">{item('settings', 'Settings')}</div>
+    </aside>
   );
 }
 

@@ -2,9 +2,11 @@ import React from 'react';
 import { Header, Icon, IconButton, Logo, Ring } from '../components/ui.jsx';
 import { freeForDay, logged, weekFree, weekRange } from '../budget.js';
 import { tcolor } from '../store.js';
+import { DesktopOnly, MobileOnly, useDesktop } from '../useDesktop.js';
 import { DAY_LETTERS, DAY_MS, addDays, dayIndex, fmt, weekRangeLabel, weekStart } from '../time.js';
 
 export default function Week({ state, now, open }) {
+  const desktop = useDesktop();
   const ws = weekStart(now);
   const [from, to] = weekRange(now);
   const free = weekFree(state.fixedCosts);
@@ -21,15 +23,22 @@ export default function Week({ state, now, open }) {
   return (
     <>
       <Header
-        left={<Logo size={40} />}
-        right={<IconButton label="Settings" onClick={() => open({ name: 'settings' })}><Icon.settings /></IconButton>}
+        left={<MobileOnly><Logo size={40} /></MobileOnly>}
+        right={
+          <>
+            <MobileOnly><IconButton label="Settings" onClick={() => open({ name: 'settings' })}><Icon.settings /></IconButton></MobileOnly>
+            <DesktopOnly><button type="button" className="btn hdr-btn" onClick={() => open({ name: 'statement' })}>Week statement</button></DesktopOnly>
+          </>
+        }
       >
         <div className="d title">This week</div>
-        <div className="muted small">{weekRangeLabel(ws)}</div>
+        <div className="muted small">{weekRangeLabel(ws)} · {fmt(free)} free pool</div>
       </Header>
       <main className="main">
+        {allocated > free && <p className="note">You've allocated {fmt(allocated - free)} more than your free pool. Something will have to give.</p>}
+        <div className="dcols week-cols">
         <div className="card ring-card">
-          <Ring size={140} stroke={14} total={total} segments={segments} label={`${fmt(free)} free pool, ${fmt(allocated)} allocated`}>
+          <Ring size={desktop ? 200 : 140} stroke={14} total={total} segments={segments} label={`${fmt(free)} free pool, ${fmt(allocated)} allocated`}>
             <div className="d mid-num">{Math.round(free / 60)} h</div>
             <div className="muted tiny">free pool</div>
           </Ring>
@@ -49,7 +58,6 @@ export default function Week({ state, now, open }) {
             <div className="muted tiny">Hours spent / budgeted</div>
           </div>
         </div>
-        {allocated > free && <p className="note">You've allocated {fmt(allocated - free)} more than your free pool. Something will have to give.</p>}
         <div className="card">
           <div className="split">
             <span className="lbl">By day</span>
@@ -75,7 +83,8 @@ export default function Week({ state, now, open }) {
             Today: {fmt(logged(state, null, addDays(ws, today).getTime(), addDays(ws, today + 1).getTime(), now))} of {fmt(freeForDay(state.fixedCosts, today))}
           </div>
         </div>
-        <button type="button" className="btn2" onClick={() => open({ name: 'statement' })}>Week statement</button>
+        </div>
+        <MobileOnly><button type="button" className="btn2" onClick={() => open({ name: 'statement' })}>Week statement</button></MobileOnly>
       </main>
     </>
   );

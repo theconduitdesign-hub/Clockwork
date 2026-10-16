@@ -23,6 +23,10 @@ Then open the address it prints (usually http://localhost:5173). `npm run build`
 | Settle up | Week statement (settle into savings or time debt), savings goals, streak |
 | Settings | Colour theme, edit fixed costs, export/import a JSON backup, start over |
 
+## Desktop
+
+At 1024px and wider, Pocketwatch switches to its desktop layout: a sidebar (Today, Week, Targets, Statement, Savings, Settings) and multi-column pages. Targets shows the list and the selected target side by side, sheets open as centred dialogs, and a running timer floats in the bottom-right corner. Phones keep the tab bar layout. The switch lives in `src/useDesktop.js`; the desktop styles are the `@media (min-width: 1024px)` block at the end of `src/styles.css`.
+
 ## How the numbers work
 
 - **Free pool** = 24 h × 7 minus your fixed costs.
@@ -42,7 +46,8 @@ Everything is stored in your browser's localStorage on this device (key `clockwo
 
 ```
 src/
-  App.jsx            navigation, sheets
+  App.jsx            navigation (tab bar or sidebar), sheets
+  useDesktop.js      desktop / phone layout switch
   store.js           state, reducer, localStorage
   budget.js          budgeting maths
   time.js            date and duration helpers

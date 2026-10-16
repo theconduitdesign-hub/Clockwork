@@ -20,7 +20,7 @@ export default function CheckIn({ state, now, back, sheet }) {
       <Header left={<IconButton label="Close" onClick={back}><Icon.close /></IconButton>}>
         <span className="lbl">Check-in · {DAY_NAMES[dayIndex(now)].slice(0, 3)} {dateLabel(now)}</span>
       </Header>
-      <main className="main">
+      <main className="main narrow">
         <h1 className="d h1">How did today go?</h1>
         <Say>{line}</Say>
         {rows.length > 0 && (

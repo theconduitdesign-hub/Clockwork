@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Header, Icon, IconButton, Logo, Say } from '../components/ui.jsx';
 import { statementRows, weekFree, logged } from '../budget.js';
+import { DesktopOnly, MobileOnly } from '../useDesktop.js';
 import { addDays, fmt, fmtSigned, weekKey, weekRangeLabel, weekStart } from '../time.js';
 
 const RESULT = {
@@ -37,7 +38,7 @@ export default function Statement({ state, dispatch, now, back }) {
   return (
     <>
       <Header
-        left={<IconButton label="Back" onClick={back}><Icon.back /></IconButton>}
+        left={<MobileOnly><IconButton label="Back" onClick={back}><Icon.back /></IconButton></MobileOnly>}
         right={
           <div className="pager">
             <IconButton label="Previous week" onClick={() => setOffset(offset - 1)}><Icon.back /></IconButton>
@@ -47,9 +48,11 @@ export default function Statement({ state, dispatch, now, back }) {
           </div>
         }
       >
+        <DesktopOnly><h1 className="d title">Week statement</h1></DesktopOnly>
         <span className="lbl">{offset === 0 ? 'This week' : offset === -1 ? 'Last week' : `${-offset} weeks ago`}</span>
       </Header>
       <main className="main">
+        <div className="dcols statement-cols">
         <div className="receipt">
           {stamp && <div className={net >= 0 ? 'stamp' : 'stamp ink'}>{settled ? 'SETTLED' : stamp}</div>}
           <div className="brand-row"><Logo size={24} /><span className="strong small">Pocketwatch</span></div>
@@ -80,10 +83,15 @@ export default function Statement({ state, dispatch, now, back }) {
             <span className="d dbl">{fmtSigned(net)}</span>
           </div>
         </div>
-        <Say>{line}</Say>
-        {ended && rows.length > 0 && !settled && (
-          <button type="button" className="btn push" onClick={() => dispatch({ type: 'settle', wk, net })}>Settle up</button>
-        )}
+        <div className="stack side-col">
+          <Say>{line}</Say>
+          {ended && rows.length > 0 && !settled && (
+            <button type="button" className="btn push" onClick={() => dispatch({ type: 'settle', wk, net })}>
+              Settle up{net !== 0 ? `: ${fmtSigned(net)} ${net > 0 ? 'to savings' : 'borrowed'}` : ''}
+            </button>
+          )}
+        </div>
+        </div>
       </main>
     </>
   );

@@ -246,3 +246,118 @@ h1, h2, p { margin: 0; }
 .theme-sw span { width: 16px; height: 36px; }
 .theme-opt .tn { flex: 1; display: flex; flex-direction: column; }
 .theme-opt .tn small { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+/* Layout helpers: stacked on phones, columns on desktop */
+.app-body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.dcols { display: flex; flex-direction: column; gap: 14px; }
+.side-col { gap: 14px; }
+.split-l { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.hdr-actions { display: flex; gap: 10px; }
+
+/* ---------- Desktop (1024px and wider) ---------- */
+@media (min-width: 1024px) {
+  .app.desk { max-width: none; flex-direction: row; box-shadow: none; }
+  .side {
+    position: sticky; top: 0; height: 100vh; width: 248px; flex-shrink: 0;
+    background: var(--white); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; padding: 24px 16px;
+  }
+  .side-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 28px; }
+  .side-brand .d { font-size: 24px; }
+  .side-nav { display: flex; flex-direction: column; gap: 4px; }
+  .side-foot { margin-top: auto; }
+  .nv {
+    display: flex; align-items: center; gap: 12px; width: 100%; height: 46px; padding: 0 12px;
+    border: 0; border-radius: 12px; background: none; text-align: left;
+    font-size: 15px; font-weight: 600; color: var(--soft-text);
+  }
+  .nv svg { width: 22px; height: 22px; }
+  .nv:hover { background: var(--sand); }
+  .nv.on { background: var(--teal-tint); color: var(--teal-dark); }
+
+  .desk .app-body { max-width: 1240px; }
+  .desk .hdr {
+    position: static; background: none; border: 0; min-height: 0;
+    padding: 32px 40px 4px; align-items: flex-end;
+  }
+  .desk .hdr .ib { background: var(--white); }
+  .desk .title, .desk .title-lg { font-size: 40px; line-height: 1.1; }
+  .desk .hdr .muted { font-size: 15px; margin-top: 4px; }
+  .desk .main { padding: 16px 40px 40px; gap: 20px; }
+  .desk:has(.banner) .main { padding-bottom: 110px; }
+  .desk .card { border-radius: 20px; padding: 22px 24px; }
+  .desk .card.list { padding: 0 24px; }
+  .desk .say { border-radius: 18px; padding: 16px 20px; }
+  .desk .say p { font-size: 16px; }
+
+  .desk .btn, .desk .btn2 { height: 48px; border-radius: 14px; font-size: 15px; }
+  .hdr-actions .btn, .hdr-actions .btn2, .hdr-btn { width: auto; padding: 0 22px; white-space: nowrap; }
+  .desk .btn.push { width: 100%; }
+
+  .dcols { display: grid; gap: 20px; align-items: start; }
+  .today-cols { grid-template-columns: minmax(0, 1fr) 340px; }
+  .week-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+  .targets-cols { grid-template-columns: 380px minmax(0, 1fr); }
+  .statement-cols { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+  .settings-cols { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .savings-top { grid-template-columns: 1.6fr 1fr 1fr; align-items: stretch; }
+  .goals-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+
+  /* Today */
+  .ring-card.vertical { flex-direction: column; align-items: center; gap: 16px; }
+  .ring-card.vertical > .lbl { align-self: flex-start; }
+  .ring-stats { display: flex; gap: 28px; }
+  .desk .alloc { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .desk .alloc:last-of-type { border-bottom: 0; }
+  .desk .alloc-body { font-size: 16px; }
+  .desk .amt { font-size: 14px; }
+  .buffer-row { margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--sand); display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .vault-sm { padding: 18px 24px; }
+  .desk .lg { font-size: 14px; padding: 6px 0; }
+
+  /* Week */
+  .week-cols .ring-card { gap: 28px; }
+  .desk .days { height: 220px; }
+  .desk .col { width: 40px; border-radius: 8px; }
+
+  /* Targets list + detail */
+  .tcard.on { box-shadow: 0 0 0 2px var(--teal); }
+  .pane { background: var(--white); border-radius: 20px; padding: 24px 28px; }
+  .pane .stats > div, .pane .say { background: var(--sand); }
+  .pane .card { background: var(--sand); }
+
+  /* Statement */
+  .statement-cols .receipt { padding: 32px 36px; }
+  .statement-cols .btn.push { margin-top: 0; }
+
+  /* Savings */
+  .savings-top .vault { display: flex; flex-direction: column; justify-content: space-between; }
+  .goal-new {
+    display: flex; flex-direction: column; justify-content: center; gap: 6px; min-height: 140px;
+    border: 1.5px dashed rgba(20, 32, 31, 0.3); border-radius: 20px; background: none; padding: 22px 24px; text-align: left;
+  }
+  .goal-new:hover { background: var(--white); }
+
+  /* Settings */
+  .settings-cols .stack > .lbl { margin-top: 0 !important; }
+
+  /* Focus timer and check-in: centred column */
+  .desk .main.focus { max-width: 640px; margin: 0 auto; width: 100%; }
+  .desk .main.focus .push { margin-top: 8px; }
+  .desk .main.narrow { max-width: 720px; }
+  .desk .main.narrow .push { margin-top: 8px; }
+
+  /* Timer banner floats bottom right */
+  .desk .banner { position: fixed; right: 24px; bottom: 24px; width: 360px; margin: 0; box-shadow: 0 12px 32px rgba(20, 32, 31, 0.25); }
+
+  /* Sheets become centred dialogs */
+  .sheet-wrap { align-items: center; }
+  .sheet { max-width: 520px; border-radius: 24px; padding: 24px 28px 28px; }
+
+  /* Onboarding: a centred card on the sand background */
+  .app.onb { max-width: 600px; min-height: 0; margin: 48px auto; border-radius: 28px; overflow: hidden; box-shadow: 0 1px 0 var(--line), 0 20px 50px rgba(20, 32, 31, 0.08); }
+  .app.onb .welcome { min-height: 0; padding: 72px 48px 48px; }
+  .app.onb .dots { margin-top: 32px; }
+  .app.onb .main { padding: 20px 32px 32px; }
+  .app.onb .hdr { position: static; }
+}

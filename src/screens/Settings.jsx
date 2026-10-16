@@ -2,11 +2,13 @@ import React, { useRef, useState } from 'react';
 import { Header, Icon, IconButton } from '../components/ui.jsx';
 import { FixedCostsEditor } from '../components/forms.jsx';
 import { THEMES } from '../themes.js';
+import { MobileOnly, useDesktop } from '../useDesktop.js';
 
 export default function Settings({ state, dispatch, back }) {
   const fileRef = useRef(null);
   const [msg, setMsg] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
+  const desktop = useDesktop();
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -33,12 +35,8 @@ export default function Settings({ state, dispatch, back }) {
     e.target.value = '';
   };
 
-  return (
+  const theme = (
     <>
-      <Header left={<IconButton label="Back" onClick={back}><Icon.back /></IconButton>}>
-        <h1 className="d title-lg">Settings</h1>
-      </Header>
-      <main className="main">
         <div className="lbl">Theme</div>
         <div className="themes" role="radiogroup" aria-label="Theme">
           {THEMES.map((t) => {
@@ -67,8 +65,16 @@ export default function Settings({ state, dispatch, back }) {
             );
           })}
         </div>
+    </>
+  );
+  const fixed = (
+    <>
         <div className="lbl" style={{ marginTop: 8 }}>Your fixed costs</div>
         <FixedCostsEditor list={state.fixedCosts} onChange={(list) => dispatch({ type: 'setFixed', list })} />
+    </>
+  );
+  const data = (
+    <>
         <div className="lbl" style={{ marginTop: 8 }}>Your data</div>
         <div className="card list">
           <button type="button" className="it" onClick={exportData}>
@@ -93,6 +99,30 @@ export default function Settings({ state, dispatch, back }) {
         </div>
         {msg && <p className="note" role="status">{msg}</p>}
         <p className="muted small center push">Everything is stored in this browser, on this device. Export a backup now and then.</p>
+    </>
+  );
+
+  return (
+    <>
+      <Header left={<MobileOnly><IconButton label="Back" onClick={back}><Icon.back /></IconButton></MobileOnly>}>
+        <h1 className="d title-lg">Settings</h1>
+      </Header>
+      <main className="main">
+        {desktop ? (
+          <div className="dcols settings-cols">
+            <div className="stack">{fixed}</div>
+            <div className="stack">
+              {theme}
+              {data}
+            </div>
+          </div>
+        ) : (
+          <>
+            {theme}
+            {fixed}
+            {data}
+          </>
+        )}
       </main>
     </>
   );

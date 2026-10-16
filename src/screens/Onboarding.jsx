@@ -15,7 +15,7 @@ export default function Onboarding({ state, dispatch }) {
 
   if (step === 0) {
     return (
-      <div className="app">
+      <div className="app onb">
         <main className="welcome">
           <Logo size={132} label="Pocketwatch, the moustached clock" />
           <h1 className="d">
@@ -33,7 +33,7 @@ export default function Onboarding({ state, dispatch }) {
 
   if (step === 1) {
     return (
-      <div className="app">
+      <div className="app onb">
         <Header left={back}>
           <span className="lbl">Step 2 of 4</span>
         </Header>
@@ -51,7 +51,7 @@ export default function Onboarding({ state, dispatch }) {
     const weekday = freeForDay(state.fixedCosts, 0);
     const weekend = freeForDay(state.fixedCosts, 6);
     return (
-      <div className="app">
+      <div className="app onb">
         <Header left={back}>
           <span className="lbl">Step 3 of 4</span>
         </Header>
@@ -76,7 +76,7 @@ export default function Onboarding({ state, dispatch }) {
   }
 
   return (
-    <div className="app">
+    <div className="app onb">
       <Header left={back}>
         <span className="lbl">Step 4 of 4</span>
       </Header>
